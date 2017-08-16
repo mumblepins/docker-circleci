@@ -1,66 +1,83 @@
 defaults: &defaults
-    working_directory: /tmp/docker_on_debian_build
-    docker:
-        - image: mumblepins/docker-on-debian-circleci
-          environment:
-            DOCKER_IMAGE: "mumblepins/docker-on-debian-circleci"
+  working_directory: /tmp/docker_on_debian_build
+  docker:
+    - image: mumblepins/docker-on-debian-circleci
+      environment:
+        DOCKER_IMAGE: "mumblepins/docker-on-debian-circleci"
 
 version: 2
 jobs:
-    build:
-        <<: *defaults
-        steps:
-            - checkout
-            - setup_remote_docker
-            - run:
-                command : |
-                    set -ex
-                    echo $PWD
-                    VERSION="$(cat VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-                    GIT_COMMIT="$(git rev-parse --short HEAD)"
-                    BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-                    GIT_URL=$(git config --get remote.origin.url)
-                    docker build \
-                        --build-arg BUILD_DATE="${BUILD_DATE}" \
-                        --build-arg VERSION="${VERSION}" \
-                        --build-arg VCS_URL="${GIT_URL}" \
-                        --build-arg VCS_REF="${GIT_COMMIT}" \
-                        -t ${DOCKER_IMAGE}:${VERSION} .
-                    mkdir -p workspace
-                    docker save -o  workspace/image.tar ${DOCKER_IMAGE}:${VERSION}
-                    echo "$VERSION" > workspace/VERSION
-            - persist_to_workspace:
-                root: workspace
-                paths:
-                    - image.tar
-                    - VERSION
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker Image
+          command: |
+            set -ex
+            echo $PWD
+            VERSION=$( cat VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' )
+            GIT_COMMIT=$( git rev-parse --short HEAD )
+            BUILD_DATE=$( date -u +"%Y-%m-%dT%H:%M:%SZ" )
+            GIT_URL=$( git config --get remote.origin.url )
+            echo "$GIT_URL"
+            # Convert github ssh repo to https
+            if echo "$GIT_URL" | grep -q "git@github.com"; then
+              GIT_URL=$( echo "$GIT_URL" | sed -r 's|git@github.com:|https://github.com/|' )
+            fi
+            echo "$GIT_URL"
+            echo "export VERSION=\"$VERSION\"" >> $BASH_ENV
+            echo "export GIT_COMMIT=\"$GIT_COMMIT\"" >> $BASH_ENV
+            echo "export BUILD_DATE=\"$BUILD_DATE\"" >> $BASH_ENV
+            echo "export GIT_URL=\"$GIT_URL\"" >> $BASH_ENV
+            cat $BASH_ENV
+            docker build \
+              --build-arg BUILD_DATE="${BUILD_DATE}" \
+              --build-arg VERSION="${VERSION}" \
+              --build-arg VCS_URL="${GIT_URL}" \
+              --build-arg VCS_REF="${GIT_COMMIT}" \
+              -t ${DOCKER_IMAGE}:${VERSION} .
+      - run:
+          name: Save Docker Image to Workspace
+          command: |
+            set -ex
+            mkdir -p workspace
+            docker save -o  workspace/image.tar ${DOCKER_IMAGE}:${VERSION}
+            cat $BASH_ENV > workspace/BASH_ENV_SAVE
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - image.tar
+            - BASH_ENV_SAVE
 
-    deploy:
-        <<: *defaults
-        steps:
-            - attach_workspace:
-                at: workspace
-#            - checkout
-            - setup_remote_docker
-            - deploy:
-                name: Docker Hub Deploy
-                command : |
-                    set -ex
-                    echo $PWD
-                    docker login -u $DOCKER_USER -p $DOCKER_PASS
-                    VERSION="$(cat workspace/VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-                    docker load -i workspace/image.tar
-                    docker tag ${DOCKER_IMAGE}:${VERSION} ${DOCKER_IMAGE}:latest
-                    docker push ${DOCKER_IMAGE}:${VERSION}
-                    docker push ${DOCKER_IMAGE}:latest
+  deploy:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: workspace
+      - run: cat workspace/BASH_ENV_SAVE >> $BASH_ENV
+      - setup_remote_docker
+      - run:
+          name: Docker Image Load
+          command: docker load -i workspace/image.tar
+      - deploy:
+          name: Docker Hub Deploy
+          command : |
+            set -ex
+            echo $PWD
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker tag ${DOCKER_IMAGE}:${VERSION} ${DOCKER_IMAGE}:latest
+            docker push ${DOCKER_IMAGE}:${VERSION}
+            docker push ${DOCKER_IMAGE}:latest
 
 workflows:
-    version: 2
-    build-and-deploy:
-        jobs:
-            - build
-#            - deploy:
-#                requires:
-#                    - build
+  version: 2
+  build-and-deploy:
+    jobs:
+    - build
+    - deploy:
+      requires:
+        - build
 
 
