@@ -3,7 +3,7 @@ defaults: &defaults
     docker:
         - image: mumblepins/docker-on-debian-circleci
           environment:
-            DOCKER_IMAGE: "mumblepins/letsencrypt-auto"
+            DOCKER_IMAGE: "mumblepins/docker-on-debian-circleci"
 
 version: 2
 jobs:
