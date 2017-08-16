@@ -13,13 +13,24 @@ RUN set -ex \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         docker-ce \
+        python-pip \
+        python-setuptools \
+        liblz4-tool \
+        build-essential \
+        python-wheel \
+    && apt-get upgrade -y \
+    && pip install semver \
     && rm -rf /var/lib/apt/lists/*
+
+COPY root-fs /
+
+RUN chmod +x /usr/local/bin/*
 
 # Build-time metadata as defined at http://label-schema.org
 ARG BUILD_DATE
 ARG VCS_REF
 ARG VCS_URL
-ARG VERSION=1.0.0
+ARG VERSION
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="Docker-on-Debian-CircleCI" \
       org.label-schema.description="Docker on Debian for CircleCI" \
