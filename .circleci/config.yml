@@ -1,0 +1,66 @@
+defaults: &defaults
+    working_directory: /tmp
+    docker:
+        - image: mumblepins/docker-on-debian-circleci
+
+
+version: 2
+jobs:
+    build:
+        <<: *defaults
+        steps:
+            - checkout
+            - setup_remote_docker
+            - run:
+                command : |
+                    set -ex
+                    echo $PWD
+                    VERSION="$(cat VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+                    GIT_COMMIT="$(git rev-parse --short HEAD)"
+                    BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                    GIT_URL=$(git config --get remote.origin.url)
+                    docker build \
+                        --build-arg BUILD_DATE="${BUILD_DATE)" \
+                        --build-arg VERSION="${VERSION}" \
+                        --build-arg VCS_URL="${GIT_URL}" \
+                        --build-arg VCS_REF="${GIT_COMMIT}" \
+                        -t "${DOCKER_IMAGE}":"${VERSION}" .
+                    mkdir -p workspace
+                    docker save -o  workspace/image.tar "${DOCKER_IMAGE}":"${VERSION}"
+            - persist_to_workspace:
+                root: workspace
+                paths:
+                    - image.tar
+
+    deploy:
+        <<: *defaults
+        steps:
+            - checkout
+            - setup_remote_docker
+            - attach_workspace
+                at: workspace
+            - deploy:
+                name: Docker Hub Deploy
+                command : |
+                    set -ex
+                    echo $PWD
+                    docker login -u $DOCKER_USER -p $DOCKER_PASS
+                    VERSION="$(cat VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+                    GIT_COMMIT="$(git rev-parse --short HEAD)"
+                    BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                    GIT_URL=$(git config --get remote.origin.url)
+                    docker load -i workspace/image.tar
+                    docker tag "${DOCKER_IMAGE}":"${VERSION}" "${DOCKER_IMAGE}":latest
+                    docker push "${DOCKER_IMAGE}":"${VERSION}"
+	                docker push "${DOCKER_IMAGE}":latest
+
+workflows:
+    version: 2
+    build-and-deploy:
+        jobs:
+            - build
+            - deploy:
+                requires:
+                    - build
+
+
