@@ -2,7 +2,8 @@ defaults: &defaults
     working_directory: /tmp
     docker:
         - image: mumblepins/docker-on-debian-circleci
-
+          environment:
+            DOCKER_IMAGE: "mumblepins/letsencrypt-auto"
 
 version: 2
 jobs:
@@ -20,39 +21,38 @@ jobs:
                     BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
                     GIT_URL=$(git config --get remote.origin.url)
                     docker build \
-                        --build-arg BUILD_DATE="${BUILD_DATE)" \
+                        --build-arg BUILD_DATE="${BUILD_DATE}" \
                         --build-arg VERSION="${VERSION}" \
                         --build-arg VCS_URL="${GIT_URL}" \
                         --build-arg VCS_REF="${GIT_COMMIT}" \
-                        -t "${DOCKER_IMAGE}":"${VERSION}" .
+                        -t ${DOCKER_IMAGE}:${VERSION} .
                     mkdir -p workspace
-                    docker save -o  workspace/image.tar "${DOCKER_IMAGE}":"${VERSION}"
+                    docker save -o  workspace/image.tar ${DOCKER_IMAGE}:${VERSION}
+                    echo "$VERSION" > workspace/VERSION
             - persist_to_workspace:
                 root: workspace
                 paths:
                     - image.tar
+                    - VERSION
 
     deploy:
         <<: *defaults
         steps:
-            - checkout
-            - setup_remote_docker
-            - attach_workspace
+            - attach_workspace:
                 at: workspace
+#            - checkout
+            - setup_remote_docker
             - deploy:
                 name: Docker Hub Deploy
                 command : |
                     set -ex
                     echo $PWD
                     docker login -u $DOCKER_USER -p $DOCKER_PASS
-                    VERSION="$(cat VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-                    GIT_COMMIT="$(git rev-parse --short HEAD)"
-                    BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-                    GIT_URL=$(git config --get remote.origin.url)
+                    VERSION="$(cat workspace/VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
                     docker load -i workspace/image.tar
-                    docker tag "${DOCKER_IMAGE}":"${VERSION}" "${DOCKER_IMAGE}":latest
-                    docker push "${DOCKER_IMAGE}":"${VERSION}"
-	                docker push "${DOCKER_IMAGE}":latest
+                    docker tag ${DOCKER_IMAGE}:${VERSION} ${DOCKER_IMAGE}:latest
+                    docker push ${DOCKER_IMAGE}:${VERSION}
+                    docker push ${DOCKER_IMAGE}:latest
 
 workflows:
     version: 2
