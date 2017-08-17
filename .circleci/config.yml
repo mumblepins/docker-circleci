@@ -50,6 +50,8 @@ jobs:
           paths:
             - image.tar.lz4
             - BASH_ENV_SAVE
+      - store_artifacts:
+          path: workspace
 
   deploy:
     <<: *defaults
