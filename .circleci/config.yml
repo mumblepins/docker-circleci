@@ -43,12 +43,13 @@ jobs:
           command: |
             set -ex
             mkdir -p workspace
-            docker save -o  workspace/image.tar ${DOCKER_IMAGE}:${VERSION}
+            time (docker save ${DOCKER_IMAGE}:${VERSION} | lz4 -zc > workspace/image.tar.lz4)
+            exit 1
             cat $BASH_ENV > workspace/BASH_ENV_SAVE
       - persist_to_workspace:
           root: workspace
           paths:
-            - image.tar
+            - image.tar.lz4
             - BASH_ENV_SAVE
 
   deploy:
@@ -60,7 +61,9 @@ jobs:
       - setup_remote_docker
       - run:
           name: Docker Image Load
-          command: docker load -i workspace/image.tar
+          command: |
+            set -ex
+            time (lz4 -cd workspace/image.tar.lz4 | docker load)
       - deploy:
           name: Docker Hub Deploy
           command : |

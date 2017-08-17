@@ -18,6 +18,8 @@ RUN set -ex \
         liblz4-tool \
         build-essential \
         python-wheel \
+        jq \
+        nano \
     && apt-get upgrade -y \
     && pip install semver \
     && rm -rf /var/lib/apt/lists/*
