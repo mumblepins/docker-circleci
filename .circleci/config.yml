@@ -44,7 +44,6 @@ jobs:
             set -ex
             mkdir -p workspace
             time (docker save ${DOCKER_IMAGE}:${VERSION} | lz4 -zc > workspace/image.tar.lz4)
-            exit 1
             cat $BASH_ENV > workspace/BASH_ENV_SAVE
       - persist_to_workspace:
           root: workspace
