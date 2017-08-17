@@ -77,9 +77,17 @@ workflows:
   version: 2
   build-and-deploy:
     jobs:
-    - build
-    - deploy:
-        requires:
-          - build
+      - build:
+          filters:
+            tags:
+              only: /^[0-9.]+$/
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^[0-9.]+$/
 
 
