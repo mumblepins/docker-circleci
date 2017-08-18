@@ -11,6 +11,14 @@ if echo "$GIT_URL" | grep -q "git@github.com"; then
   GIT_URL=$( echo "$GIT_URL" | sed -r 's|git@github.com:|https://github.com/|' )
 fi
 
+# Find out if tag on this branch equals the version release, otherwise mark with build
+tag_hash=$( git rev-list ${VERSION} -n 1 || echo "222" )
+cur_hash=$( git rev-parse HEAD )
+if [ "$tag_hash" != "$cur_hash" ]; then
+    # dev build
+    VERSION="$VERSION-$GIT_COMMIT"
+fi
+
 echo "export VERSION=\"$VERSION\"" >> $BASH_ENV
 echo "export GIT_COMMIT=\"$GIT_COMMIT\"" >> $BASH_ENV
 echo "export BUILD_DATE=\"$BUILD_DATE\"" >> $BASH_ENV
