@@ -19,10 +19,10 @@ if [ "$tag_hash" != "$cur_hash" ]; then
     VERSION="$VERSION-$GIT_COMMIT"
 fi
 
-echo "export VERSION=\"$VERSION\"" >> $BASH_ENV
-echo "export GIT_COMMIT=\"$GIT_COMMIT\"" >> $BASH_ENV
-echo "export BUILD_DATE=\"$BUILD_DATE\"" >> $BASH_ENV
-echo "export GIT_URL=\"$GIT_URL\"" >> $BASH_ENV
+echo "export VERSION=\"$VERSION\"" >> "$BASH_ENV"
+echo "export GIT_COMMIT=\"$GIT_COMMIT\"" >> "$BASH_ENV"
+echo "export BUILD_DATE=\"$BUILD_DATE\"" >> "$BASH_ENV"
+echo "export GIT_URL=\"$GIT_URL\"" >> "$BASH_ENV"
 
-echo -e "BASH_ENV:\n$(cat $BASH_ENV)"
+echo -e "\n\nBASH_ENV:\n\n$(cat "$BASH_ENV")\n"
 
