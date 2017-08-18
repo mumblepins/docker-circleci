@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -ex
+#!/bin/bash -ex
 echo $PWD
 
 VERSION=$( cat VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' )

@@ -12,6 +12,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+#      - run:
+#          name: Init Environment
+#          command: init-environment
       - run:
           name: Build Docker Image
           command: |
@@ -54,7 +57,9 @@ jobs:
     steps:
       - attach_workspace:
           at: workspace
-      - run: cat workspace/BASH_ENV_SAVE >> $BASH_ENV
+      - run:
+          name: Init Environment
+          command: set -ex; cat workspace/BASH_ENV_SAVE >> $BASH_ENV
       - setup_remote_docker
       - run:
           name: Docker Image Load
