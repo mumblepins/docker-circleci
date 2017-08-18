@@ -16,22 +16,18 @@ jobs:
           name: Build Docker Image
           command: |
             set -ex
-            echo $PWD
             VERSION=$( cat VERSION | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' )
             GIT_COMMIT=$( git rev-parse --short HEAD )
             BUILD_DATE=$( date -u +"%Y-%m-%dT%H:%M:%SZ" )
             GIT_URL=$( git config --get remote.origin.url )
-            echo "$GIT_URL"
             # Convert github ssh repo to https
             if echo "$GIT_URL" | grep -q "git@github.com"; then
               GIT_URL=$( echo "$GIT_URL" | sed -r 's|git@github.com:|https://github.com/|' )
             fi
-            echo "$GIT_URL"
             echo "export VERSION=\"$VERSION\"" >> $BASH_ENV
             echo "export GIT_COMMIT=\"$GIT_COMMIT\"" >> $BASH_ENV
             echo "export BUILD_DATE=\"$BUILD_DATE\"" >> $BASH_ENV
             echo "export GIT_URL=\"$GIT_URL\"" >> $BASH_ENV
-            cat $BASH_ENV
             docker build \
               --build-arg BUILD_DATE="${BUILD_DATE}" \
               --build-arg VERSION="${VERSION}" \
