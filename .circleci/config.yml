@@ -1,7 +1,7 @@
 defaults: &defaults
   working_directory: /tmp/docker_on_debian_build
   docker:
-    - image: mumblepins/docker-on-debian-circleci
+    - image: mumblepins/docker-circleci
       environment:
         DOCKER_IMAGE: "mumblepins/docker-circleci"
 
@@ -54,7 +54,7 @@ jobs:
           command: |
             set -ex
             # Make sure that we have a clean tag
-            if [[ "$VERSION" == *+* ]]; then echo "Something went wrong, we have a dash in our Version tag"; exit 1; fi
+            if [[ "$VERSION" == *+* ]]; then echo "Something went wrong, we have a plus in our Version tag"; exit 1; fi
       - run:
           name: Docker Image Load
           command: |
@@ -66,9 +66,9 @@ jobs:
             set -ex
             echo $PWD
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag ${DOCKER_IMAGE}:${VERSION} ${DOCKER_IMAGE}:latest
+            docker tag ${DOCKER_IMAGE}:${VERSION} ${DOCKER_IMAGE}:xenial
             docker push ${DOCKER_IMAGE}:${VERSION}
-            docker push ${DOCKER_IMAGE}:latest
+            docker push ${DOCKER_IMAGE}:xenial
 
 workflows:
   version: 2
