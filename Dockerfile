@@ -1,4 +1,4 @@
-FROM buildpack-deps:stretch
+FROM buildpack-deps:xenial
 
 RUN set -ex \
     && apt-get update \
@@ -34,8 +34,8 @@ ARG VCS_REF
 ARG VCS_URL
 ARG VERSION
 LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="Docker-on-Debian-CircleCI" \
-      org.label-schema.description="Docker on Debian for CircleCI" \
+      org.label-schema.name="Docker-For-CircleCI" \
+      org.label-schema.description="Docker for CircleCI" \
       org.label-schema.url="https://hub.docker.com/r/mumblepins/docker-on-debian-circleci/" \
       org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url=$VCS_URL \

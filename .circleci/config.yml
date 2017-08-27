@@ -3,7 +3,7 @@ defaults: &defaults
   docker:
     - image: mumblepins/docker-on-debian-circleci
       environment:
-        DOCKER_IMAGE: "mumblepins/docker-on-debian-circleci"
+        DOCKER_IMAGE: "mumblepins/docker-circleci"
 
 version: 2
 jobs:
@@ -54,7 +54,7 @@ jobs:
           command: |
             set -ex
             # Make sure that we have a clean tag
-            if [[ "$VERSION" == *-* ]]; then echo "Something went wrong, we have a dash in our Version tag"; exit 1; fi
+            if [[ "$VERSION" == *+* ]]; then echo "Something went wrong, we have a dash in our Version tag"; exit 1; fi
       - run:
           name: Docker Image Load
           command: |

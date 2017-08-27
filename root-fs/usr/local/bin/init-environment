@@ -16,7 +16,7 @@ tag_hash=$( git rev-list ${VERSION} -n 1 || echo "222" )
 cur_hash=$( git rev-parse HEAD )
 if [ "$tag_hash" != "$cur_hash" ]; then
     # dev build
-    VERSION="$VERSION-$GIT_COMMIT"
+    VERSION="$VERSION+$GIT_COMMIT"
 fi
 
 echo "export VERSION=\"$VERSION\"" >> "$BASH_ENV"
