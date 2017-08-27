@@ -54,7 +54,7 @@ jobs:
           command: |
             set -ex
             # Make sure that we have a clean tag
-            if [[ "$VERSION" == *+* ]]; then echo "Something went wrong, we have a plus in our Version tag"; exit 1; fi
+            if [[ "$VERSION" == *_* ]]; then echo "Something went wrong, we have a _ in our Version tag"; exit 1; fi
       - run:
           name: Docker Image Load
           command: |
