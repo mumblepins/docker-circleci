@@ -20,6 +20,10 @@ RUN set -ex \
         python-wheel \
         jq \
         nano \
+    && apt-get install -y \
+        dh-make \
+        devscripts \
+        unzip \
     && apt-get upgrade -y \
     && pip install semver \
     && rm -rf /var/lib/apt/lists/*

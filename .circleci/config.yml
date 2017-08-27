@@ -66,9 +66,9 @@ jobs:
             set -ex
             echo $PWD
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag ${DOCKER_IMAGE}:${VERSION} ${DOCKER_IMAGE}:xenial
+            docker tag ${DOCKER_IMAGE}:${VERSION} ${DOCKER_IMAGE}:xenial-debuild
             docker push ${DOCKER_IMAGE}:${VERSION}
-            docker push ${DOCKER_IMAGE}:xenial
+            docker push ${DOCKER_IMAGE}:xenial-debuild
 
 workflows:
   version: 2
