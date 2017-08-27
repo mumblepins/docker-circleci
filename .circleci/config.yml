@@ -1,7 +1,7 @@
 defaults: &defaults
-  working_directory: /tmp/docker_on_debian_build
+  working_directory: /tmp/docker_build
   docker:
-    - image: mumblepins/docker-on-debian-circleci
+    - image: mumblepins/docker-circleci
       environment:
         DOCKER_IMAGE: "mumblepins/docker-circleci"
 
