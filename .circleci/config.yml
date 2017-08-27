@@ -18,7 +18,6 @@ jobs:
       - run:
           name: Build Docker Image
           command: |
-            set -ex
             docker build \
               --build-arg BUILD_DATE="${BUILD_DATE}" \
               --build-arg VERSION="${VERSION}" \
@@ -28,7 +27,6 @@ jobs:
       - run:
           name: Save Docker Image to Workspace
           command: |
-            set -ex
             mkdir -p workspace
             time (docker save ${DOCKER_IMAGE}:${VERSION} | lz4 -zc > workspace/image.tar.lz4)
             cat $BASH_ENV > workspace/BASH_ENV_SAVE
@@ -52,18 +50,15 @@ jobs:
       - run:
           name: Check Version Tag
           command: |
-            set -ex
             # Make sure that we have a clean tag
             if [[ "$VERSION" == *_* ]]; then echo "Something went wrong, we have a _ in our Version tag"; exit 1; fi
       - run:
           name: Docker Image Load
           command: |
-            set -ex
             time (lz4 -cd workspace/image.tar.lz4 | docker load)
       - deploy:
           name: Docker Hub Deploy
           command : |
-            set -ex
             echo $PWD
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker tag ${DOCKER_IMAGE}:${VERSION} ${DOCKER_IMAGE}:xenial
